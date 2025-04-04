@@ -28,7 +28,7 @@ packages to install:
 *extra*
 
  - using this single line of batch you can convert the "jupython" to straight html  
-   `batch jupyter nbconvert --to html <file_name>.ipynb `  
+   `jupyter nbconvert --to html <file_name>.ipynb `  
    Limitations : The resulting HTML file is static and does not include interactivity or the ability to run code. It’s more like a snapshot of the notebook.  
 
  - to be able to run the code in the browser you have to do a lot more :  
