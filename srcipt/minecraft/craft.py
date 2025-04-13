@@ -1,6 +1,5 @@
-# pip install pynput
-from pynput import keyboard
-# pip install mouse
+# pip install pynput mouse
+from pynput import keyboard;
 import mouse;
 import threading;
 import time;
@@ -12,56 +11,36 @@ import sys;
 
 class AutoCraft:
     def __init__(self):
-        self.keyboard = keyboard.Controller()
-        self.running = False
-        self.stop_flag = False
-        self.exit_flag = False  # New flag for exit
+        self.k,self.m=keyboard.Controller(),mouse
+        self.r=self.s=self.e=False
 
-    def press_key(self, char):
-        """Simulate pressing and releasing a key"""
-        self.keyboard.press(char)
-        self.keyboard.release(char)
+    def press_key(self, c):
+        self.k.press(c); self.k.release(c)
 
     def loop_craft(self):
-        """Main looping function that runs in a background thread"""
-        while not self.stop_flag:
+        while not self.s:
             self.press_key(" ")
-            with self.keyboard.pressed(keyboard.Key.shift_l):
-                mouse.click('left')
-            time.sleep(0.1)
-        self.running = False  # Reset state after stopping
+            with self.k.pressed(keyboard.Key.shift_l):
+                self.m.click('left')
+            time.sleep(.1)
+        self.r = False
 
-    def on_press(self, key):
-        """Handle key press events"""
-        if key == keyboard.Key.home and not self.running:
-            # Start the loop if not already running
-            self.stop_flag = False
-            self.running = True
+    def on_press(self, k):
+        if k==keyboard.Key.home and not self.r:
+            self.s=False;time.sleep(.4);self.r=True
             threading.Thread(target=self.loop_craft).start()
 
-    def on_release(self, key):
-        """Handle key release events"""
-        if key == keyboard.Key.esc:
-            self.stop_flag = True  # Stop the loop
-            self.exit_flag = True  # Signal to exit after delay
-            return False  # Stop the listener
-        return True  # Keep listener running otherwise
+    def on_release(self, k):
+        if self.r and k==keyboard.Key.home:
+            self.s=self.e=True
+            return False
+        return True
 
     def start(self):
-        """Start the keyboard listener"""
-        with keyboard.Listener(
-            on_press=self.on_press,
-            on_release=self.on_release) as listener:
-            listener.join()  # Wait for listener to finish
-        # After listener stops, check exit condition
-        if self.exit_flag:
-            print("Exiting in 2 seconds...")
-            time.sleep(2)
-            sys.exit()  # Exit after delay
+        with keyboard.Listener(on_press=self.on_press,on_release=self.on_release) as l:l.join()
+        if self.e:print("Exiting in a second...");time.sleep(1);sys.exit()
 
-if __name__ == "__main__":
-    bot = AutoCraft() 
-    bot.start()
+if __name__ == "__main__":AutoCraft().start()
 
 
 
