@@ -35,8 +35,7 @@ response = client.chat.completions.create(
 	top_p=0.5,
 	stream=True
 )
-
-#increadibly fast, even tho "streaming" does not really works
+#increadibly fast
 
 for chunk in response:
     print(chunk.choices[0].delta.content, end="")
