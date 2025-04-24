@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Message Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background: #333;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background: #555;
+        }
+        .message-container {
+            background: #e9f7fe;
+            padding: 15px;
+            border-left: 5px solid #2196F3;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Message Interface</h1>
+    <form action="/send_message" method="get">
+        <label for="message">Enter your message:</label><br><br>
+        <textarea id="message" name="message" rows="4" cols="50"></textarea><br>
+        <input type="submit" value="Send">
+    </form>
+    <div class="message-container" id="messageDisplay">
+        <!-- RESPONSE_PLACEHOLDER -->
+    </div>
+
+    <script>        
+        // Display the message when the page loads
+        /*document.addEventListener('DOMContentLoaded', function() {
+            const messageDisplay = document.getElementById('messageDisplay');
+            messageDisplay.textContent = "apple";
+        });*/
+    </script>
+</body>
+</html>
