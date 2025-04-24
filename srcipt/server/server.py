@@ -26,8 +26,16 @@ CONFIG = {
             'resources'),
             'key.txt'
         ),
-    "DEFAULT_CONTEXT": "You are a helpful AI assistant. Respond in fluent English and provide useful, concise answers.",
-    "MODEL_NAME": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
+    "DEFAULT_CONTEXT": """
+
+-_-
+    """,
+    "DEFAULT_CONTEXT_TWO": """
+
+-_-
+
+    """,
+    "MODEL_NAME": "deepseek-ai/DeepSeek-V3-0324",
     "MODEL_PARAMS": {
         "temperature": 0.1,
         "max_tokens": 4096,
@@ -104,8 +112,8 @@ class AIClient:
         """Get AI response for user message"""
         if not user_message.strip():
             return "Please provide a valid question or prompt."
-            
-        messages = [{"role": "user", "content": f"{CONFIG['DEFAULT_CONTEXT']} {user_message}"}]
+                
+        messages = [{"role": "user", "content": f"{CONFIG['DEFAULT_CONTEXT']}"},{"role": "assistant", "content": f"{CONFIG['DEFAULT_CONTEXT_TWO']}"},{"role": "user", "content": f"{user_message}"}]
         
         try:
             self.initialize_client()
