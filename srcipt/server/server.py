@@ -27,11 +27,9 @@ CONFIG = {
             'key.txt'
         ),
     "DEFAULT_CONTEXT": """
-
 -_-
     """,
     "DEFAULT_CONTEXT_TWO": """
-
 -_-
 
     """,
