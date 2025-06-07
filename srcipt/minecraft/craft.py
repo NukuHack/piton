@@ -9,7 +9,7 @@ import sys;
 # actually had to make something like this for myself so i tought why not give it a try it python ?
 # learn and make something useful ? really nice
 
-class AutoCraft:
+class AutoMacro:
     def __init__(self):
         self.k,self.m=keyboard.Controller(),mouse
         self.r=self.s=self.e=False
@@ -19,10 +19,8 @@ class AutoCraft:
 
     def loop_craft(self):
         while not self.s:
-            self.press_key(" ")
-            with self.k.pressed(keyboard.Key.shift_l):
-                self.m.click('left')
-            time.sleep(.1)
+            self.press_key("r")
+            time.sleep(.05)
         self.r = False
 
     def on_press(self, k):
@@ -40,7 +38,7 @@ class AutoCraft:
         with keyboard.Listener(on_press=self.on_press,on_release=self.on_release) as l:l.join()
         if self.e:print("Exiting in a second...");time.sleep(1);sys.exit()
 
-if __name__ == "__main__":AutoCraft().start()
+if __name__ == "__main__":AutoMacro().start()
 
 
 

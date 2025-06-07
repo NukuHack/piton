@@ -1,90 +1,106 @@
 from PIL import Image
 
-# this script makes a bad sized texture map a nicer size (what i needed at that time)
-# and adds the missing "space" -> an empty glyph before the first texture :)
+def upscale_glyph(glyph, factor=2):
+    """Upscale a glyph by a factor, blending pixels for smoothness."""
+    if not isinstance(glyph, Image.Image):
+        raise ValueError("Input must be a PIL Image object")
+    
+    width, height = glyph.size
+    if width == 0 or height == 0:
+        return glyph.copy()
+    
+    new_width = width * factor
+    new_height = height * factor
+    upscaled = Image.new("RGBA", (new_width, new_height))
+
+    # Get all original pixels at once for better performance
+    original_pixels = glyph.load()
+    
+    # Step 1: Copy original pixels to new positions (factor*x, factor*y)
+    for y in range(height):
+        for x in range(width):
+            upscaled.putpixel((x * factor, y * factor), original_pixels[x, y])
+
+    # Step 2: Fill horizontal gaps (average left and right)
+    for y in range(0, new_height, factor):
+        for x in range(1, new_width, 2):
+            left_x = x - 1
+            right_x = x + 1 if x + 1 < new_width else left_x
+            left = upscaled.getpixel((left_x, y))
+            right = upscaled.getpixel((right_x, y))
+            blended = tuple((l + r) // 2 for l, r in zip(left, right))
+            upscaled.putpixel((x, y), blended)
+
+    # Step 3: Fill vertical gaps (average top and bottom)
+    for y in range(1, new_height, 2):
+        for x in range(0, new_width, factor):
+            top_y = y - 1
+            bottom_y = y + 1 if y + 1 < new_height else top_y
+            top = upscaled.getpixel((x, top_y))
+            bottom = upscaled.getpixel((x, bottom_y))
+            blended = tuple((t + b) // 2 for t, b in zip(top, bottom))
+            upscaled.putpixel((x, y), blended)
+
+    # Step 4: Fill diagonal gaps (average 4 nearest pixels)
+    for y in range(1, new_height, 2):
+        for x in range(1, new_width, 2):
+            # Get neighboring coordinates with boundary checks
+            left = x - 1
+            right = x + 1 if x + 1 < new_width else left
+            top = y - 1
+            bottom = y + 1 if y + 1 < new_height else top
+            
+            # Get neighboring pixels
+            tl = upscaled.getpixel((left, top))   # Top-left
+            tr = upscaled.getpixel((right, top))    # Top-right
+            bl = upscaled.getpixel((left, bottom))  # Bottom-left
+            br = upscaled.getpixel((right, bottom)) # Bottom-right
+            
+            # Blend all available neighbors
+            blended = tuple((a + b + c + d) // 4 for a, b, c, d in zip(tl, tr, bl, br))
+            upscaled.putpixel((x, y), blended)
+
+    return upscaled
+
+width, height = 16, 48
 
 # Load the original texture map
 original_image = Image.open("bescii-chars.png")
-width, height = original_image.size
-glyph_width = width // 51  # Width of each glyph
-glyph_height = height // 15  # Height of each glyph
+img_width, img_height = original_image.size
+glyph_width = img_width // width  # Original glyph width
+glyph_height = img_height // height  # Original glyph height
 
-# Calculate new dimensions
-new_rows = 48
-new_cols = 16  # Fixed at 16 columns
+# Calculate upscaled dimensions
+upscaled_glyph_width = glyph_width * 2
+upscaled_glyph_height = glyph_height * 2
 
-# Create a new blank image
-new_image = Image.new("RGBA", (new_cols * glyph_width, new_rows * glyph_height))
+# Create a new blank image with upscaled dimensions
+new_image = Image.new(
+    "RGBA",
+    (width * upscaled_glyph_width, height * upscaled_glyph_height)
+)
 
-# Extract and repack glyphs
-for y_old in range(15):  # Original height (15 rows)
-    for x_old in range(51):  # Original width (51 columns)
-        # Calculate position in old texture
-        x1_old = x_old * glyph_width
-        y1_old = y_old * glyph_height
-        x2_old = x1_old + glyph_width
-        y2_old = y1_old + glyph_height
+# Process each glyph in the original image
+for row in range(height):
+    for col in range(width):
+        # Calculate the bounding box of the current glyph
+        left = col * glyph_width
+        upper = row * glyph_height
+        right = left + glyph_width
+        lower = upper + glyph_height
         
-        # Extract glyph
-        glyph = original_image.crop((x1_old, y1_old, x2_old, y2_old))
+        # Extract the glyph
+        glyph = original_image.crop((left, upper, right, lower))
         
-        # Calculate position in new texture
-        index = y_old * 51 + x_old  # Linear index in the old texture
-        x_new = (index % new_cols) * glyph_width  # Column in new texture
-        y_new = (index // new_cols) * glyph_height  # Row in new texture
+        # Upscale the glyph
+        upscaled_glyph = upscale_glyph(glyph)
         
-        # Paste glyph into new texture
-        new_image.paste(glyph, (x_new, y_new))
-
-# Save the new texture map
-new_image.save("font_texture.png")
-
-
-
-
-
-# Load the original texture map
-original_width, original_height = original_image.size
-
-# Calculate glyph dimensions
-glyph_width = original_width // 51  # Original columns were 51
-glyph_height = original_height // 15  # Original rows were 15
-
-# New dimensions (16 columns × 48 rows)
-new_cols = 16
-new_rows = 48
-
-# Create a new blank image with transparent background
-new_image = Image.new("RGBA", (new_cols * glyph_width, new_rows * glyph_height))
-
-# Create a transparent "empty" glyph
-empty_glyph = Image.new("RGBA", (glyph_width, glyph_height), (0, 0, 0, 0))
-
-# Step 1: Place the empty glyph at position 0 (first cell)
-new_image.paste(empty_glyph, (0, 0))
-
-# Step 2: Reposition all original glyphs starting at index 1
-for y_old in range(15):
-    for x_old in range(51):
-        # Calculate the original index (0-based)
-        original_index = y_old * 51 + x_old
+        # Calculate the position in the new image
+        new_left = col * upscaled_glyph_width
+        new_upper = row * upscaled_glyph_height
         
-        # Calculate the new index (shifted by +1 to leave position 0 empty)
-        new_index = original_index + 1
+        # Paste the upscaled glyph into the new image
+        new_image.paste(upscaled_glyph, (new_left, new_upper))
 
-        # Calculate coordinates in the new texture map
-        x_new = (new_index % new_cols) * glyph_width
-        y_new = (new_index // new_cols) * glyph_height
-
-        # Extract the glyph from the original texture
-        x1_old = x_old * glyph_width
-        y1_old = y_old * glyph_height
-        x2_old = x1_old + glyph_width
-        y2_old = y1_old + glyph_height
-        glyph = original_image.crop((x1_old, y1_old, x2_old, y2_old))
-
-        # Paste the glyph into the new texture (starting at new_index = 1)
-        new_image.paste(glyph, (x_new, y_new))
-
-# Save the modified texture map
-new_image.save("font_texture_16x48_with_empty.png")
+# Save the result
+new_image.save("font_texture_upscaled.png")
