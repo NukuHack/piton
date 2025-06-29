@@ -227,26 +227,44 @@ class ImageViewerApp(QMainWindow):
     
     def update_path_display(self):
         """Update the path display with current number"""
-        self.path_input.setText(f"{self.base_path}_{self.current_number}{self.file_extension}")
-    
+        # Try both underscore and hyphen separated formats
+        path1 = f"{self.base_path}_{self.current_number}{self.file_extension}"
+        path2 = f"{self.base_path}-{self.current_number}{self.file_extension}"
+        path3 = f"{self.base_path}.{self.current_number}{self.file_extension}"
+        path4 = f"{self.base_path}({self.current_number}){self.file_extension}"
+        
+        # Use the first format that exists, or default to underscore
+        if os.path.exists(path2):
+            self.path_input.setText(path2)
+        elif os.path.exists(path3):
+            self.path_input.setText(path3)
+        elif os.path.exists(path4):
+            self.path_input.setText(path4)
+        else:
+            self.path_input.setText(path1)  # default to underscore format
+
     def update_path_from_input(self):
         """Update the path components when user edits the field"""
         full_path = self.path_input.text()
         
-        # Try to extract base path and number
-        parts = full_path.rsplit('_', 1)
-        if len(parts) > 1:
-            # Split number and extension
-            num_ext = parts[1].split('.', 1)
-            if len(num_ext) > 1 and num_ext[0].isdigit():
-                self.base_path = parts[0]
-                self.current_number = int(num_ext[0])
-                self.file_extension = f".{num_ext[1]}" if num_ext[1] else ""
+        # Try different patterns to extract base path and number
+        patterns = [
+            (r'(.+)[-_](\d+)\.(\w+)$', 1, 2),  # name-number.ext or name_number.ext
+            (r'(.+)\.(\d+)\.(\w+)$', 1, 2),    # name.number.ext
+            (r'(.+)\((\d+)\)\.(\w+)$', 1, 2)   # name(number).ext
+        ]
+        
+        for pattern, base_group, num_group in patterns:
+            import re
+            match = re.match(pattern, full_path)
+            if match:
+                self.base_path = match.group(base_group)
+                self.current_number = int(match.group(num_group))
+                self.file_extension = f".{match.group(3)}"
                 self.load_image()
                 return
         
-        # If no number found, try to find a number elsewhere in the path
-        import re
+        # If no pattern matched, try to find a number elsewhere in the path
         match = re.search(r'(\d+)\.\w+$', full_path)
         if match:
             num = match.group(1)
