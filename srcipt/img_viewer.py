@@ -68,7 +68,7 @@ class ImageViewerApp(QMainWindow):
         super().__init__()
         
         # Initial path settings
-        self.base_path = r"B:\my stuff\pics\xxx\nnn\apoth_diary\apoth_diary"
+        self.base_path = r"B:\my stuff\pics\image"
         self.current_number = 1
         self.file_extension = ".jpg"
         
